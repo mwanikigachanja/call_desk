@@ -31,9 +31,9 @@
             <td>{{ call.created_at|date:"M d, Y H:i" }}</td>
             <td>
                 <!-- Action Buttons -->
-                <a href="{% url 'edit_call_log' call.id %}" class="btn btn-sm btn-primary">Edit</a>
-                <a href="{% url 'delete_call_log' call.id %}" class="btn btn-sm btn-danger">Delete</a>
-                <a href="{% url 'assign_call_log' call.id %}" class="btn btn-sm btn-secondary">Assign</a>
+                <a href="{% url 'edit_call_log' call.id %}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="Edit Call Log">Edit</a>
+                <a href="{% url 'delete_call_log' call.id %}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Delete Call Log">Delete</a>
+                <a href="{% url 'assign_call_log' call.id %}" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" title="Assign Query">Assign</a>                
             </td>
         </tr>
         {% endfor %}
@@ -48,5 +48,12 @@
                 e.preventDefault();
             }
         });
+    });
+</script>
+
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 </script>
