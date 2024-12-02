@@ -30,8 +30,10 @@
             <td>{{ call.assigned_to }}</td>
             <td>{{ call.created_at|date:"M d, Y H:i" }}</td>
             <td>
-                <a href="#" class="btn btn-sm btn-primary">Edit</a>
-                <a href="#" class="btn btn-sm btn-danger">Delete</a>
+                <!-- Action Buttons -->
+                <a href="{% url 'edit_call_log' call.id %}" class="btn btn-sm btn-primary">Edit</a>
+                <a href="{% url 'delete_call_log' call.id %}" class="btn btn-sm btn-danger">Delete</a>
+                <a href="{% url 'assign_call_log' call.id %}" class="btn btn-sm btn-secondary">Assign</a>
             </td>
         </tr>
         {% endfor %}
