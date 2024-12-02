@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.models import User
 from .models import Customer, CallLog
-from .forms import CallLogForm
+from .forms import CallLogForm, CustomerForm
 
 def dashboard(request):
     stats = {
@@ -51,3 +51,21 @@ def assign_call_log(request, pk):
     # Fetch all users to display in the dropdown
     users = User.objects.all()
     return render(request, 'assign_call_log.html', {'call_log': call_log, 'users': users})
+
+def edit_customer(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    if request.method == "POST":
+        form = CustomerForm(request.POST, instance=customer)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Customer details updated successfully.")
+            return redirect('customer_list')
+    else:
+        form = CustomerForm(instance=customer)
+    return render(request, 'edit_customer.html', {'form': form})
+
+def delete_customer(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    customer.delete()
+    messages.success(request, "Customer deleted successfully.")
+    return redirect('customer_list')
