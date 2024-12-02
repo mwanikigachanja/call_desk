@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Assign Call Log</h1>
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="assigned_to" class="form-label">Assign To</label>
+        <select name="assigned_to" id="assigned_to" class="form-select">
+            {% for user in users %}
+            <option value="{{ user.id }}" {% if call_log.assigned_to == user %}selected{% endif %}>
+                {{ user.username }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Assign</button>
+    <a href="{% url 'call_log' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

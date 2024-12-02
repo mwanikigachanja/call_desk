@@ -6,4 +6,7 @@ urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('call-log/', views.call_log, name='call_log'),
     path('customers/', views.customer_list, name='customer_list'),
+    path('call-log/edit/<int:pk>/', views.edit_call_log, name='edit_call_log'),
+    path('call-log/delete/<int:pk>/', views.delete_call_log, name='delete_call_log'),  # Delete URL
+    path('call-log/assign/<int:pk>/', views.assign_call_log, name='assign_call_log'),  # Assign URL
 ]

@@ -1,6 +1,9 @@
 # calls/views.py
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.models import User
 from .models import Customer, CallLog
+from .forms import CallLogForm
 
 def dashboard(request):
     stats = {
@@ -17,3 +20,34 @@ def call_log(request):
 def customer_list(request):
     customers = Customer.objects.all()
     return render(request, 'customer_list.html', {'customers': customers})
+
+def edit_call_log(request, pk):
+    call_log = get_object_or_404(CallLog, pk=pk)
+    if request.method == "POST":
+        form = CallLogForm(request.POST, instance=call_log)
+        if form.is_valid():
+            form.save()
+            return redirect('call_log')
+    else:
+        form = CallLogForm(instance=call_log)
+    return render(request, 'edit_call_log.html', {'form': form})
+
+def delete_call_log(request, pk):
+    call_log = get_object_or_404(CallLog, pk=pk)
+    call_log.delete()
+    messages.success(request, "Call log deleted successfully.")
+    return redirect('call_log')
+
+def assign_call_log(request, pk):
+    call_log = get_object_or_404(CallLog, pk=pk)
+    if request.method == "POST":
+        user_id = request.POST.get('assigned_to')
+        assigned_user = get_object_or_404(User, pk=user_id)
+        call_log.assigned_to = assigned_user
+        call_log.save()
+        messages.success(request, f"Call log assigned to {assigned_user.username}.")
+        return redirect('call_log')
+
+    # Fetch all users to display in the dropdown
+    users = User.objects.all()
+    return render(request, 'assign_call_log.html', {'call_log': call_log, 'users': users})
