@@ -1,7 +1,7 @@
-# calls/models.py
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser, User
 
+# Customer Model
 class Customer(models.Model):
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15, unique=True)
@@ -11,6 +11,8 @@ class Customer(models.Model):
     def __str__(self):
         return self.name
 
+
+# CallLog Model
 class CallLog(models.Model):
     STATUS_CHOICES = [
         ('P', 'Pending'),
@@ -23,7 +25,7 @@ class CallLog(models.Model):
         ('Query', 'Query'),
     ]
 
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='call_logs')
     query_type = models.CharField(max_length=50, choices=QUERY_CHOICES)
     description = models.TextField()
     logged_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='logged_calls')
@@ -34,3 +36,13 @@ class CallLog(models.Model):
 
     def __str__(self):
         return f"{self.customer.name} - {self.query_type}"
+
+
+# Report Metadata Model (optional for future analytics)
+class Report(models.Model):
+    report_name = models.CharField(max_length=100)
+    generated_at = models.DateTimeField(auto_now_add=True)
+    data = models.JSONField()  # Store metadata for analytics purposes
+
+    def __str__(self):
+        return self.report_name
