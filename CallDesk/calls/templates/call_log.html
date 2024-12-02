@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">Call Logs</h1>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>Query Type</th>
+            <th>Status</th>
+            <th>Assigned To</th>
+            <th>Logged At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for call in calls %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ call.customer.name }}</td>
+            <td>{{ call.query_type }}</td>
+            <td>
+                <span class="badge 
+                    {% if call.status == 'P' %} bg-warning 
+                    {% elif call.status == 'R' %} bg-success 
+                    {% else %} bg-info {% endif %}">
+                    {{ call.get_status_display }}
+                </span>
+            </td>
+            <td>{{ call.assigned_to }}</td>
+            <td>{{ call.created_at|date:"M d, Y H:i" }}</td>
+            <td>
+                <a href="#" class="btn btn-sm btn-primary">Edit</a>
+                <a href="#" class="btn btn-sm btn-danger">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
