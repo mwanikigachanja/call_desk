@@ -22,6 +22,11 @@
             <td>{{ customer.phone }}</td>
             <td>{{ customer.email }}</td>
             <td>{{ customer.address }}</td>
+            <td>
+                <!-- Action Buttons -->
+                <a href="{% url 'edit_customer' customer.id %}" class="btn btn-sm btn-primary">Edit</a>
+                <a href="{% url 'delete_customer' customer.id %}" class="btn btn-sm btn-danger">Delete</a>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
