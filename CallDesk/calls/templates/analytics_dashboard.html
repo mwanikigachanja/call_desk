@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h1>Analytics Dashboard</h1>
+    <div class="row mt-4">
+        <!-- Summary Statistics -->
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5>Total Queries</h5>
+                    <p>{{ total_queries }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5>Resolved Queries</h5>
+                    <p>{{ resolved_queries }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5>Unresolved Queries</h5>
+                    <p>{{ unresolved_queries }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5>Resolution Rate</h5>
+                    <p>{{ resolution_rate }}%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Category Breakdown -->
+    <h2 class="mt-5">Query Categories</h2>
+    <ul>
+        {% for category in category_distribution %}
+        <li>{{ category.category }}: {{ category.total }}</li>
+        {% endfor %}
+    </ul>
+    <!-- Average Resolution Time -->
+    <h2 class="mt-5">Average Resolution Time</h2>
+    <p>{{ avg_resolution_time|date:"H:i:s" }}</p>
+</div>
+{% endblock %}

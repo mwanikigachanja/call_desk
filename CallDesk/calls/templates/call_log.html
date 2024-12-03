@@ -6,10 +6,12 @@
         <tr>
             <th>#</th>
             <th>Customer</th>
+            <th>Category</th>
             <th>Query Type</th>
+            <th>Description</th>
+            <th>Action Taken</th>
+            <th>Recommendation</th>
             <th>Status</th>
-            <th>Assigned To</th>
-            <th>Logged At</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -18,17 +20,12 @@
         <tr>
             <td>{{ forloop.counter }}</td>
             <td>{{ call.customer.name }}</td>
-            <td>{{ call.query_type }}</td>
-            <td>
-                <span class="badge 
-                    {% if call.status == 'P' %} bg-warning 
-                    {% elif call.status == 'R' %} bg-success 
-                    {% else %} bg-info {% endif %}">
-                    {{ call.get_status_display }}
-                </span>
-            </td>
-            <td>{{ call.assigned_to }}</td>
-            <td>{{ call.created_at|date:"M d, Y H:i" }}</td>
+            <td>{{ call.get_category_display }}</td>
+            <td>{{ call.get_query_type_display }}</td>
+            <td>{{ call.description }}</td>
+            <td>{{ call.action_taken }}</td>
+            <td>{{ call.recommendation }}</td>
+            <td>{{ call.get_status_display }}</td>    
             <td>
                 <!-- Action Buttons -->
                 <a href="{% url 'edit_call_log' call.id %}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="Edit Call Log">Edit</a>

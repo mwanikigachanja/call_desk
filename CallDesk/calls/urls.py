@@ -11,4 +11,5 @@ urlpatterns = [
     path('call-log/assign/<int:pk>/', views.assign_call_log, name='assign_call_log'),  # Assign URL
      path('customers/edit/<int:pk>/', views.edit_customer, name='edit_customer'),  # Edit customer URL
     path('customers/delete/<int:pk>/', views.delete_customer, name='delete_customer'), # Delete customer URL
+    path('analytics/', views.analytics_dashboard, name='analytics_dashboard'),  # Analytics page
 ]

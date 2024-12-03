@@ -4,6 +4,15 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from .models import Customer, CallLog
 from .forms import CallLogForm, CustomerForm
+from datetime import timedelta, datetime
+from django.db.models import Count, Avg, Q
+from io import BytesIO
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from django.core.signing import Signer
+from django.urls import reverse
+from django.db.models import F
 
 def dashboard(request):
     stats = {
@@ -27,6 +36,7 @@ def edit_call_log(request, pk):
         form = CallLogForm(request.POST, instance=call_log)
         if form.is_valid():
             form.save()
+            messages.success(request, "Call log updated successfully.")
             return redirect('call_log')
     else:
         form = CallLogForm(instance=call_log)
@@ -69,3 +79,83 @@ def delete_customer(request, pk):
     customer.delete()
     messages.success(request, "Customer deleted successfully.")
     return redirect('customer_list')
+
+def get_analytics(start_date, end_date):
+    total_queries = CallLog.objects.filter(created_at__range=[start_date, end_date]).count()
+    resolved_queries = CallLog.objects.filter(
+        created_at__range=[start_date, end_date], status='R'
+    ).count()
+    resolution_rate = (resolved_queries / total_queries) * 100 if total_queries > 0 else 0
+    category_distribution = CallLog.objects.filter(
+        created_at__range=[start_date, end_date]
+    ).values('category').annotate(total=Count('id'))
+    
+    avg_resolution_time = CallLog.objects.filter(
+        created_at__range=[start_date, end_date], status='R'
+    ).aggregate(Avg('updated_at'))['updated_at__avg']  # Assuming you track resolution timestamps
+    
+    return {
+        'total_queries': total_queries,
+        'resolved_queries': resolved_queries,
+        'resolution_rate': resolution_rate,
+        'category_distribution': category_distribution,
+        'avg_resolution_time': avg_resolution_time,
+    }
+
+def generate_pdf(context, template_path):
+    template = get_template(template_path)
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+    if not pdf.err:
+        return HttpResponse(result.getvalue(), content_type="application/pdf")
+    return None
+
+def export_pdf(request):
+    start_date = request.GET.get('start_date', datetime.now() - timedelta(days=30))
+    end_date = request.GET.get('end_date', datetime.now())
+    analytics = get_analytics(start_date, end_date)
+    context = {'analytics': analytics}
+    return generate_pdf(context, 'report_template.html')
+
+def get_shareable_link(request, start_date, end_date):
+    signer = Signer()
+    signed_data = signer.sign(f"{start_date}:{end_date}")
+    link = request.build_absolute_uri(
+        reverse('report_view', args=[signed_data])
+    )
+    return link
+
+def analytics_dashboard(request):
+    # Metrics
+    total_queries = CallLog.objects.count()
+    resolved_queries = CallLog.objects.filter(status='R').count()
+    unresolved_queries = total_queries - resolved_queries
+    resolution_rate = (resolved_queries / total_queries) * 100 if total_queries > 0 else 0
+
+    # Category Breakdown
+    category_distribution = CallLog.objects.values('category').annotate(total=Count('id'))
+
+    # Calculate Average Resolution Time in Python
+    resolved_calls = CallLog.objects.filter(status='R').annotate(
+        resolution_time=F('updated_at') - F('created_at')
+    )
+
+    resolution_times = []
+    for call in resolved_calls:
+        created_at = call.created_at
+        updated_at = call.updated_at
+        resolution_times.append((updated_at - created_at).total_seconds())
+
+    avg_resolution_time = sum(resolution_times) / len(resolution_times) if resolution_times else None
+
+    # Context for Template
+    context = {
+        'total_queries': total_queries,
+        'resolved_queries': resolved_queries,
+        'unresolved_queries': unresolved_queries,
+        'resolution_rate': resolution_rate,
+        'category_distribution': category_distribution,
+        'avg_resolution_time': avg_resolution_time,
+    }
+    return render(request, 'analytics_dashboard.html', context)

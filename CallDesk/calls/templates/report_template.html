@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Analytics Report</title>
+</head>
+<body>
+    <h1>Analytics Report</h1>
+    <p>Total Queries: {{ analytics.total_queries }}</p>
+    <p>Resolved Queries: {{ analytics.resolved_queries }}</p>
+    <p>Resolution Rate: {{ analytics.resolution_rate }}%</p>
+    <h2>Category Distribution</h2>
+    <ul>
+        {% for category in analytics.category_distribution %}
+        <li>{{ category.category }}: {{ category.total }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
