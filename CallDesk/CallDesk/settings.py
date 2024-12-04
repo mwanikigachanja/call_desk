@@ -76,8 +76,12 @@ WSGI_APPLICATION = 'CallDesk.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'call_log_db',
+        'USER': 'call_admin',
+        'PASSWORD': '434yut@r',
+        'HOST': 'localhost',  # Adjust if using a remote server
+        'PORT': '5432',       # Default PostgreSQL port
     }
 }
 
