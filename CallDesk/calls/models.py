@@ -14,41 +14,27 @@ class Customer(models.Model):
         return self.name
 
 
-# CallLog Model
+
 class CallLog(models.Model):
     STATUS_CHOICES = [
-        ('P', 'Pending'),
-        ('IP', 'In Progress'),
-        ('R', 'Resolved'),
+        ('Open', 'Open'),
+        ('In Progress', 'In Progress'),
+        ('Resolved', 'Resolved'),
+        ('Closed', 'Closed'),
     ]
-    QUERY_CHOICES = [
-        ('Complaint', 'Complaint'),
-        ('Feedback', 'Feedback'),
-        ('Query', 'Query'),
-    ]
-    CATEGORY_CHOICES = [
-        ('Maize', 'Maize'),
-        ('Wheat', 'Wheat'),
-        ('Beans', 'Beans'),
-        ('Fertilizers', 'Fertilizers'),
-        ('Others', 'Others'),
-    ]
-
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    query_type = models.CharField(max_length=50, choices=QUERY_CHOICES)
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='Others')  # New field
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='call_logs')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='logged_calls')
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='call_logs')
     description = models.TextField()
-    action_taken = models.TextField(blank=True, null=True)  # New field
-    recommendation = models.TextField(blank=True, null=True)  # New field
-    logged_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='logged_calls')
-    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assigned_calls', blank=True, null=True)
-    status = models.CharField(max_length=2, choices=STATUS_CHOICES, default='P')
+    action_taken = models.ForeignKey(ActionTaken, on_delete=models.SET_NULL, null=True, related_name='call_logs')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Open')
+    logged_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='logs_created')
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='logs_assigned')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.customer.name} - {self.query_type}"
-
+        return f"CallLog {self.id} - {self.customer.name}"
 
 
 # Report Metadata Model (optional for future analytics)
@@ -106,5 +92,22 @@ class Recommendation(models.Model):
 
     def __str__(self):
         return f"Recommendation for {self.call_log.id}"
+
+class Report(models.Model):
+    REPORT_TYPE_CHOICES = [
+        ('Daily', 'Daily'),
+        ('Weekly', 'Weekly'),
+        ('Monthly', 'Monthly'),
+        ('Quarterly', 'Quarterly'),
+        ('Yearly', 'Yearly'),
+    ]
+    report_name = models.CharField(max_length=255)
+    report_type = models.CharField(max_length=50, choices=REPORT_TYPE_CHOICES)
+    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='generated_reports')
+    generated_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.report_name
+
 
 
