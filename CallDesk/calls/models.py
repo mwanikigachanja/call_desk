@@ -1,7 +1,8 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, User, Category, ActionTaken
+from django.contrib.auth.models import AbstractUser, User
 
-# Customer Model
+
+# Customer model
 class Customer(models.Model):
     name = models.CharField(max_length=255)
     phone = models.CharField(max_length=15, unique=True)
@@ -12,40 +13,6 @@ class Customer(models.Model):
 
     def __str__(self):
         return self.name
-
-
-
-class CallLog(models.Model):
-    STATUS_CHOICES = [
-        ('Open', 'Open'),
-        ('In Progress', 'In Progress'),
-        ('Resolved', 'Resolved'),
-        ('Closed', 'Closed'),
-    ]
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='call_logs')
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='logged_calls')
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='call_logs')
-    description = models.TextField()
-    action_taken = models.ForeignKey(ActionTaken, on_delete=models.SET_NULL, null=True, related_name='call_logs')
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Open')
-    logged_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='logs_created')
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='logs_assigned')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"CallLog {self.id} - {self.customer.name}"
-
-
-# Report Metadata Model (optional for future analytics)
-class Report(models.Model):
-    report_name = models.CharField(max_length=100)
-    generated_at = models.DateTimeField(auto_now_add=True)
-    data = models.JSONField()  # Store metadata for analytics purposes
-
-    def __str__(self):
-        return self.report_name
-    
 
 class User(AbstractUser):
     ROLE_CHOICES = [
@@ -85,6 +52,27 @@ class ActionTaken(models.Model):
     def __str__(self):
         return self.name
     
+class CallLog(models.Model):
+    STATUS_CHOICES = [
+        ('Open', 'Open'),
+        ('In Progress', 'In Progress'),
+        ('Resolved', 'Resolved'),
+        ('Closed', 'Closed'),
+    ]
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='call_logs')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='logged_calls')
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='call_logs')
+    description = models.TextField()
+    action_taken = models.ForeignKey(ActionTaken, on_delete=models.SET_NULL, null=True, related_name='call_logs')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Open')
+    logged_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='logs_created')
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='logs_assigned')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"CallLog {self.id} - {self.customer.name}"
+
 class Recommendation(models.Model):
     call_log = models.ForeignKey('CallLog', on_delete=models.CASCADE, related_name='recommendations')
     recommendation = models.TextField()
@@ -108,6 +96,8 @@ class Report(models.Model):
 
     def __str__(self):
         return self.report_name
+    
+
 
 
 
