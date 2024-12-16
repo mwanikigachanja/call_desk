@@ -59,3 +59,22 @@ class Report(models.Model):
 
     def __str__(self):
         return self.report_name
+    
+
+class User(AbstractUser):
+    ROLE_CHOICES = [
+        ('Admin', 'Admin'),
+        ('Agent', 'Agent'),
+        ('Manager', 'Manager'),
+        ('Supervisor', 'Supervisor'),
+        ('Support', 'Support'),
+        ('Analyst', 'Analyst'),
+        ('Developer', 'Developer'),
+        ('Tester', 'Tester'),
+        ('Staff', 'Staff'),
+        ('Other', 'Other'),
+    ]
+    role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='Agent')
+
+    def __str__(self):
+        return self.username
