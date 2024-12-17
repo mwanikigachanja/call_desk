@@ -5,14 +5,14 @@ from django.contrib.auth.models import User
 from .models import Customer, CallLog
 from .forms import CallLogForm, CustomerForm
 from datetime import timedelta, datetime
-from django.db.models import Count, Avg, Q
+from django.utils import timezone
 from io import BytesIO
 from django.http import HttpResponse
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 from django.core.signing import Signer
 from django.urls import reverse
-from django.db.models import F
+from django.db.models import Count, Avg, Q, F, DurationField, ExpressionWrapper
 
 def dashboard(request):
     stats = {
@@ -129,33 +129,44 @@ def get_shareable_link(request, start_date, end_date):
 def analytics_dashboard(request):
     # Metrics
     total_queries = CallLog.objects.count()
-    resolved_queries = CallLog.objects.filter(status='R').count()
-    unresolved_queries = total_queries - resolved_queries
-    resolution_rate = (resolved_queries / total_queries) * 100 if total_queries > 0 else 0
+    open_queries = CallLog.objects.filter(status='Open').count()
+    resolved_queries = CallLog.objects.filter(status='Resolved').count()
 
-    # Category Breakdown
-    category_distribution = CallLog.objects.values('category').annotate(total=Count('id'))
+    # Average resolution time
+    avg_resolution_time = CallLog.objects.filter(status='Resolved').aggregate(
+        avg_time=Avg(ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField()))
+    )['avg_time']
 
-    # Calculate Average Resolution Time in Python
-    resolved_calls = CallLog.objects.filter(status='R').annotate(
-        resolution_time=F('updated_at') - F('created_at')
+    # Queries by Status
+    query_status_data = (
+        CallLog.objects.values('status')
+        .annotate(count=Count('id'))
+        .order_by('status')
     )
 
-    resolution_times = []
-    for call in resolved_calls:
-        created_at = call.created_at
-        updated_at = call.updated_at
-        resolution_times.append((updated_at - created_at).total_seconds())
+    # Queries by Query Type
+    query_type_data = (
+        CallLog.objects.values('query_type')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
 
-    avg_resolution_time = sum(resolution_times) / len(resolution_times) if resolution_times else None
+    # Weekly Queries
+    start_of_week = timezone.now() - timezone.timedelta(days=7)
+    weekly_data = (
+        CallLog.objects.filter(created_at__gte=start_of_week)
+        .values('created_at__date')
+        .annotate(count=Count('id'))
+        .order_by('created_at__date')
+    )
 
-    # Context for Template
     context = {
         'total_queries': total_queries,
+        'open_queries': open_queries,
         'resolved_queries': resolved_queries,
-        'unresolved_queries': unresolved_queries,
-        'resolution_rate': resolution_rate,
-        'category_distribution': category_distribution,
         'avg_resolution_time': avg_resolution_time,
+        'query_status_data': query_status_data,
+        'query_type_data': query_type_data,
+        'weekly_data': weekly_data,
     }
     return render(request, 'analytics_dashboard.html', context)

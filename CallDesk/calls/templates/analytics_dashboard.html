@@ -1,51 +1,109 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4">
-    <h1>Analytics Dashboard</h1>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="text-center">Analytics Dashboard</h2>
     <div class="row mt-4">
-        <!-- Summary Statistics -->
         <div class="col-md-3">
-            <div class="card bg-primary text-white">
+            <div class="card text-white bg-primary mb-3">
                 <div class="card-body">
                     <h5>Total Queries</h5>
-                    <p>{{ total_queries }}</p>
+                    <h2>{{ total_queries }}</h2>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-success text-white">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                    <h5>Open Queries</h5>
+                    <h2>{{ open_queries }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
                 <div class="card-body">
                     <h5>Resolved Queries</h5>
-                    <p>{{ resolved_queries }}</p>
+                    <h2>{{ resolved_queries }}</h2>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-warning text-dark">
+            <div class="card text-white bg-info mb-3">
                 <div class="card-body">
-                    <h5>Unresolved Queries</h5>
-                    <p>{{ unresolved_queries }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h5>Resolution Rate</h5>
-                    <p>{{ resolution_rate }}%</p>
+                    <h5>Avg. Resolution Time</h5>
+                    <h2>{{ avg_resolution_time }}</h2>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Category Breakdown -->
-    <h2 class="mt-5">Query Categories</h2>
-    <ul>
-        {% for category in category_distribution %}
-        <li>{{ category.category }}: {{ category.total }}</li>
-        {% endfor %}
-    </ul>
-    <!-- Average Resolution Time -->
-    <h2 class="mt-5">Average Resolution Time</h2>
-    <p>{{ avg_resolution_time|date:"H:i:s" }}</p>
+
+    <!-- Query Status Chart -->
+    <h4>Query Status Breakdown</h4>
+    <canvas id="statusChart"></canvas>
+
+    <!-- Query Type Chart -->
+    <h4 class="mt-5">Top Query Types</h4>
+    <canvas id="queryTypeChart"></canvas>
+
+    <!-- Weekly Trends -->
+    <h4 class="mt-5">Weekly Queries</h4>
+    <canvas id="weeklyChart"></canvas>
 </div>
+
+<script>
+    // Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'pie',
+        data: {
+            labels: [{% for status in query_status_data %}'{{ status.status }}',{% endfor %}],
+            datasets: [{
+                data: [{% for status in query_status_data %}{{ status.count }},{% endfor %}],
+                backgroundColor: ['#FF6384', '#36A2EB'],
+            }]
+        }
+    });
+
+    // Query Type Chart
+    const queryTypeCtx = document.getElementById('queryTypeChart').getContext('2d');
+    new Chart(queryTypeCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for type in query_type_data %}'{{ type.query_type }}',{% endfor %}],
+            datasets: [{
+                label: 'Count',
+                data: [{% for type in query_type_data %}{{ type.count }},{% endfor %}],
+                backgroundColor: '#4BC0C0',
+            }]
+        }
+    });
+
+    // Weekly Chart
+    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+    new Chart(weeklyCtx, {
+        type: 'line',
+        data: {
+            labels: [{% for day in weekly_data %}'{{ day.created_at__date }}',{% endfor %}],
+            datasets: [{
+                label: 'Queries',
+                data: [{% for day in weekly_data %}{{ day.count }},{% endfor %}],
+                borderColor: '#FFCE56',
+                fill: false,
+            }]
+        }
+    });
+</script>
+</body>
+</html>
 {% endblock %}
